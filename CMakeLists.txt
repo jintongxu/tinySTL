@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 11)
 include_directories(${PROJECT_SOURCE_DIR}/source)
 
 # 搜索目录下的源文件，存储到变量中
-file(GLOB SRC ${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp)
+file(GLOB SRC ${CMAKE_CURRENT_SOURCE_DIR}/test/vector_test.cpp)
 
 # 生成一个可执行文件 app.exe 或 app.out
 add_executable(main ${SRC})

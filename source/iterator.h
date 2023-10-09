@@ -117,7 +117,85 @@ struct iterator_traits<const T*>
 };
 
 
+/* 以下都是语法糖 不是标准库中的 */
 
+// 萃取某种迭代器
+template <class T, class U, bool = has_iterator_cat<iterator_traits<T>>::value>
+struct has_iterator_cat_of
+  : public m_bool_constant<std::is_convertible<
+  typename iterator_traits<T>::iterator_category, U>::value>
+{
+};
+
+template <class T, class U>
+struct has_iterator_cat_of<T, U, false> : public m_false_type {};
+
+template <class Iter>
+struct is_input_iterator : public has_iterator_cat_of<Iter, input_iterator_tag> {};
+
+template <class Iter>
+struct is_output_iterator : public has_iterator_cat_of<Iter, output_iterator_tag> {};
+
+template <class Iter>
+struct is_forward_iterator : public has_iterator_cat_of<Iter, forward_iterator_tag> {};
+
+template <class Iter>
+struct is_bidirectional_iterator : public has_iterator_cat_of<Iter, bidirectional_iterator_tag> {};
+
+template <class Iter>
+struct is_random_access_iterator : public has_iterator_cat_of<Iter, random_access_iterator_tag> {};
+
+template <class Iterator>
+struct is_iterator :
+    public m_bool_constant<is_input_iterator<Iterator>::value || 
+        is_output_iterator<Iterator>::value>
+{
+};
+
+
+// 萃取某个迭代器的 category
+template <class Iterator>
+typename iterator_traits<Iterator>::iterator_category
+iterator_category(const Iterator&)
+{
+    typedef typename iterator_traits<Iterator>::iterator_category Category;
+    return Category();
+}
+
+
+
+/*  以下函数用于计算迭代器间的距离 */
+
+// distance 的 input_iterator_tag 的版本
+template <class InputIterator>
+typename iterator_traits<InputIterator>::difference_type
+distance_dispatch(InputIterator first, InputIterator last, input_iterator_tag)
+{
+    typename iterator_traits<InputIterator>::difference_type n = 0;
+    while (first != last)
+    {
+        ++first;
+        ++n;
+    }
+    return n;
+}
+
+
+// distance 的 random_access_iterator_tag 的版本
+template <class RandomIter>
+typename iterator_traits<RandomIter>::difference_type
+distance_dispatch(RandomIter first, RandomIter last, random_access_iterator_tag)
+{
+    return last - first;
+}
+
+
+template <class InputIterator>
+typename iterator_traits<InputIterator>::difference_type
+distance(InputIterator first, InputIterator last)
+{
+    return distance_dispatch(first, last, iterator_category(first));
+}
 
 
 }

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "vector.h"
 #include <vector>
-
+#include <iterator>
 
 // 真实 vector 测试
 void sysVector() {
@@ -19,16 +19,21 @@ void sysVector() {
 
 // 自己的 vector 测试
 void myselfVector() {
-    mystl::vector<int> v(10);
+    int myArray[] = {1, 2, 3, 4, 5};
+    int* begin = myArray;
+    int* end = myArray + 5;
+    mystl::vector<int> myVector(begin, end);
 
-    for (int i = 0; i < 20; i++) { std::cout << i << "  " << v[i] << std::endl;}
+    for (int i = 0; i < 5; i++) {
+        std::cout << myVector[i] << std::endl;
+    }
 }
+
 
 int main() {
 
     /* 系统的 vector 测试 */
     // sysVector();        
-
     /* 自己的 vector 测试 */
     myselfVector();
 

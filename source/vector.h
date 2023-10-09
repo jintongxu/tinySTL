@@ -74,19 +74,23 @@ public:
     vector() : begin_(0), end_(0), cap_(0) {}
 
     // explicit：不能隐式调用构造函数，例如 vector v = 10;
+    // vector<int> v(10)
     explicit vector(size_type n)
     { fill_init(n, value_type()); }
 
+    // vector<int> v(10, 1)
     vector(size_type n, const value_type& value)
     { fill_init(n, value); }
 
-    // template <class Iter, typename std::enable_if<
-    //     mystl::is_input_iterator<Iter>::value, int>::type = 0>
-    // vector(Iter first, Iter last)
-    // {
-    //     MYSTL_DEBUG(!(last < first));
-    //     range_init(first, last);
-    // }
+    // 如果是输入迭代器才可以初始化，输出迭代器不能读取元素只能赋值，其他类型是继承的输入迭代器
+    template <class Iter, typename std::enable_if<
+    mystl::is_input_iterator<Iter>::value, int>::type = 0>
+    vector(Iter first, Iter last)
+    {
+        // MYSTL_DEBUG(!(last < first));
+        range_init(first, last);
+    }
+
 
     vector(const vector& rhs)
     {
@@ -137,14 +141,18 @@ public:
 
 
 private:
-    // helper functions
+// helper functions
 
-    // initialize / destroy
-    // void try_init() noexcept;
+// initialize / destroy
+template <class Iter>
+void range_init(Iter first, Iter last);
 
-    void init_space(size_type size);
 
-    void fill_init(size_type n, const value_type& value);
+// void try_init() noexcept;
+
+void init_space(size_type size);
+
+void fill_init(size_type n, const value_type& value);
 };
 
 
@@ -200,6 +208,16 @@ fill_init(size_type n, const value_type& value)
     mystl::uninitialized_fill_n(begin_, n, value);
 }
 
+// range_init函数
+template <class T>
+template <class Iter>
+void vector<T>::
+range_init(Iter first, Iter last)
+{
+    const size_type len = mystl::distance(first, last); // 获取两个迭代器之间的距离
+    init_space(len);
+    mystl::uninitialized_copy(first, last, begin_);
+}
 
 
 

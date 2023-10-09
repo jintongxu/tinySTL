@@ -13,6 +13,54 @@
 namespace mystl
 {
 
+/*****************************************************************************************/
+// uninitialized_copy
+// 把 [first, last) 上的内容复制到以 result 为起始处的空间，返回复制结束的位置 迭代器 first 和 last
+/*****************************************************************************************/
+
+// 元素具有平凡的赋值操作 
+// 就是类似 int float 这些基本类型的数据，系统直接赋值就行
+template <class InputIter, class ForwardIter>
+ForwardIter 
+unchecked_uninit_copy(InputIter first, InputIter last, ForwardIter result, std::true_type)
+{
+  return mystl::copy(first, last, result);
+}
+
+// 元素不具有平凡的赋值操作
+// 需要调用类自己的构造函数
+template <class InputIter, class ForwardIter>
+ForwardIter
+unchecked_uninit_copy(InputIter first, InputIter last, ForwardIter result, std::false_type)
+{
+  auto cur = result;
+  try
+  {
+    for (; first != last; ++first, ++cur)
+    {
+      mystl::construct(&*cur, *first);
+    }
+  }
+  catch (...)
+  {
+    for (; result != cur; --cur)
+      mystl::destroy(&*cur);
+  }
+  return cur;
+}
+
+
+template <class InputIter, class ForwardIter>
+ForwardIter uninitialized_copy(InputIter first, InputIter last, ForwardIter result)
+{
+  // 判断迭代器内的元素是具有平凡的赋值操作，然后调用相应的重载函数
+  return mystl::unchecked_uninit_copy(first, last, result, 
+                                     std::is_trivially_copy_assignable<
+                                     typename iterator_traits<ForwardIter>::
+                                     value_type>{});
+}
+
+
 
 
 /*****************************************************************************************/
