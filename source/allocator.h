@@ -33,6 +33,8 @@ public:
     static void deallocate(T* ptr, size_type n);
 
 
+    static void destroy(T* ptr);
+    static void destroy(T* first, T* last);
 };
 
 template <class T>
@@ -52,6 +54,20 @@ T* allocator<T>::allocate(size_type n)
     return static_cast<T*>(::operator new(n * sizeof(T)));
 }
 
+
+
+// 释放内存
+template <class T>
+void allocator<T>::destroy(T* ptr)
+{
+    mystl::destroy(ptr);
+}
+
+template <class T>
+void allocator<T>::destroy(T* first, T* last)
+{
+    mystl::destroy(first, last);
+}
 
 }
 #endif

@@ -91,12 +91,14 @@ public:
         range_init(first, last);
     }
 
-
+    // 传入一个vector的左值
     vector(const vector& rhs)
     {
         range_init(rhs.begin_, rhs.end_);
     }
 
+    // 移动构造函数
+    // 赋值后，同时将rhs设置一个为有效但不在拥有资源的状态，因为如果不释放资源
     vector(vector&& rhs) noexcept
         :begin_(rhs.begin_),
         end_(rhs.end_),
@@ -132,13 +134,35 @@ public:
 public:
 
     // 迭代器相关操作
+    iterator        begin()         noexcept
+    { return begin_; }
+    const_iterator  begin()         const noexcept
+    { return begin_; }
+    iterator        end()           noexcept
+    { return end_; }
+    const_iterator  end()           const noexcept
+    { return end_; }
+
+
+    // 容器相关操作
+    bool    empty()     const noexcept
+    { return begin_ == end_; }
+    size_type size()    const noexcept
+    { return static_cast<size_type>(end_ - begin_); }
+    size_type max_size()  const noexcept
+    { return static_cast<size_type>(-1) / sizeof(T); }
+    size_type capacity() const noexcept
+    { return static_cast<size_type>(cap_ - begin_); }
+
+
 
 
 
     // 访问元素相关操作
     reference operator[](size_type n) { return *(begin_ + n); };
 
-
+    // swap
+    void swap(vector& rhs) noexcept;
 
 private:
 // helper functions
@@ -154,6 +178,63 @@ void init_space(size_type size);
 
 void fill_init(size_type n, const value_type& value);
 };
+
+/*****************************************************************************************/
+
+// 复制赋值操作符
+template <class T>
+vector<T>& vector<T>::operator=(const vector& rhs)
+{
+    // 如果不是自赋值，即将 vector<int> v(v)，自己赋值给自己，避免不必要的资源浪费
+    if (this != &rhs)
+    {
+        const auto len = rhs.size();
+        if (len > capacity())
+        {
+            // 如果对象已经使用空间大小，比当前对象实际分配空间还大
+            vector tmp(rhs.begin(), rhs.end());     // 利用迭代器创建一个临时对象。
+            swap(tmp);  // 将临时变量交换给本变量，然后临时变量调用析构函数
+        }
+        else if (size() > len)
+        {
+            // 如果当前对象的大小能容纳需要赋值的数据
+            // 直接 copy 到对象，然后返回当前对象的最后一个数据的下一个位置的指针 i
+            auto i = mystl::copy(rhs.begin(), rhs.end(), begin());
+
+            // 将多余的数据释放
+            data_allocator::destroy(i, end_);
+            end_ = begin_ + len;    // 因为后面那一段数据释放了，所以end_就变化了
+        }
+        else
+        {
+            // 如果 size() < len < capacity()
+            // 先将 rhs 的 size()范围内数据赋值给当前对象
+            mystl::copy(rhs.begin(), rhs.begin() + size(), begin_);
+            // rhs + 当前对象的size 位置到结尾的数据分配内存构造
+            mystl::uninitialized_copy(rhs.begin() + size(), rhs.end(), end_);
+            cap_ = end_ = begin_ + len;
+        }
+    }
+    // 返回本对象
+    return *this;
+}
+
+
+
+// 与另一个 vector 交换
+template <class T>
+void vector<T>::swap(vector<T>& rhs) noexcept
+{
+    // 判断是否是自赋值情况，即将 vector<int> v(v)，自己赋值给自己，避免不必要的资源浪费
+    // this 是指向当前对象的指针，判断两个地址是否相等来判断是不是同一个对象
+    if (this != &rhs)
+    {
+        // 就是简单的交换
+        mystl::swap(begin_, rhs.begin_);
+        mystl::swap(end_, rhs.end_);
+        mystl::swap(cap_, rhs.cap_);
+    }
+}
 
 
 /*****************************************************************************************/
@@ -194,7 +275,7 @@ void vector<T>::init_space(size_type size)
         cap_ = nullptr;
         throw;
     }
-    
+
 }
 
 
@@ -204,7 +285,7 @@ void vector<T>::
 fill_init(size_type n, const value_type& value)
 {
     // const size_type init_size = mystl::max(static_cast<size_type>(16), n);      // 最小分配16个元素空间
-    init_space(n); 
+    init_space(n);
     mystl::uninitialized_fill_n(begin_, n, value);
 }
 
@@ -221,6 +302,19 @@ range_init(Iter first, Iter last)
 
 
 
-
+// 重载 mystl 的 swap
+template <class T>
+void swap(vector<T>& lhs, vector<T>& rhs)
+{
+    lhs.swap(rhs);
 }
+
+
+};
+
+
+
+
+
+
 #endif

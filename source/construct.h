@@ -42,7 +42,10 @@ void construct(Ty* ptr, Args&&... args)
 // destroy 将对象析构
 
 // 具有平凡的析构函数（没有显式定义类的析构函数）
-// 平凡的啥也不用干，也干不了
+/*
+ * 平凡的啥也不用干，也干不了，因为没有占用资源（动态分配的内存，关闭文件句柄，锁等）就和int啥的一样
+ * 你平时用int的时候也没调用析构函数吧，就类的调用了析构函数
+*/
 template <class Ty>
 void destroy_one(Ty*, std::true_type) {}
 
@@ -64,7 +67,7 @@ template <class ForwardIter>
 void destroy_cat(ForwardIter first, ForwardIter last, std::false_type)
 {
     for (; first != last; ++first)
-        destroy(&*first);
+        destroy(&*first);   // 因为 first 是指针，所以要先获取元素，再&才是获取元素的地址
 }
 
 template <class Ty>
@@ -79,6 +82,7 @@ void destroy(ForwardIter first, ForwardIter last)
     destroy_cat(first, last, std::is_trivially_destructible<
                     typename iterator_traits<ForwardIter>::value_type>{});
 }
+
 
 #ifdef _MSV_VER
 #pragma warning(pop)
