@@ -58,8 +58,8 @@ public:
 
   typedef value_type*                              iterator;
   typedef const value_type*                        const_iterator;
-//   typedef mystl::reverse_iterator<iterator>        reverse_iterator;
-//   typedef mystl::reverse_iterator<const_iterator>  const_reverse_iterator;
+  typedef mystl::reverse_iterator<iterator>        reverse_iterator;
+  typedef mystl::reverse_iterator<const_iterator>  const_reverse_iterator;
 
   allocator_type get_allocator() { return data_allocator(); }
 
@@ -120,8 +120,8 @@ public:
     // 支持 initializer_list 类型赋值-----> mystl::vector<int> myVector = {1, 2, 3, 4};
     vector& operator=(std::initializer_list<value_type> ilist)
     {
-        vector tmp(ilist.begin(), ilist.end());
-        swap(tmp);
+        vector tmp(ilist.begin(), ilist.end()); // 根据initializer_list内的元素，初始化一个临时变量
+        swap(tmp);  // 然后将临时变量交换给当前对象
         return *this;
     }
 
@@ -144,6 +144,8 @@ public:
     const_iterator  end()           const noexcept
     { return end_; }
 
+    reverse_iterator      rbegin()          noexcept
+    { return reverse_iterator(end()); }
 
     // 容器相关操作
     bool    empty()     const noexcept
