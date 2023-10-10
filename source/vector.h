@@ -171,6 +171,8 @@ private:
 template <class Iter>
 void range_init(Iter first, Iter last);
 
+void destroy_and_recover(iterator first, iterator last, size_type n);   // 销毁元素并释放内存，这个 n 是用于释放内存的
+
 
 // void try_init() noexcept;
 
@@ -219,7 +221,19 @@ vector<T>& vector<T>::operator=(const vector& rhs)
     return *this;
 }
 
-
+// 移动赋值操作符
+template <class T>
+vector<T>& vector<T>::operator=(vector<T>&& rhs) noexcept
+{
+    destroy_and_recover(begin_, end_, cap_ - begin_);   // 释放vector中所有的内存
+    begin_ = rhs.begin_;
+    end_ = rhs.end_;
+    cap_ = rhs.cap_;
+    rhs.begin_ = nullptr;
+    rhs.end_ = nullptr;
+    rhs.cap_ = nullptr;
+    return *this;
+}
 
 // 与另一个 vector 交换
 template <class T>
@@ -300,7 +314,15 @@ range_init(Iter first, Iter last)
     mystl::uninitialized_copy(first, last, begin_);
 }
 
-
+// destroy_and_recover 函数
+// 销毁元素并释放内存
+template <class T>
+void vector<T>::
+destroy_and_recover(iterator first, iterator last, size_type n)
+{
+    data_allocator::destroy(first, last);
+    data_allocator::deallocate(first, n);
+}
 
 // 重载 mystl 的 swap
 template <class T>

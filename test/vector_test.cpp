@@ -27,7 +27,9 @@ void myselfVector() {
 //    for (int i = 0; i < 5; i++) {
 //        std::cout << myVector[i] << std::endl;
 //    }
-    mystl::vector<int> test2 = myVector;
+    mystl::vector<int> test2;
+
+    test2 = std::move(myVector);
 
     for (int i = 0; i < 6; i ++) {
         std::cout << test2[i] << std::endl;

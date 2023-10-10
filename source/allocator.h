@@ -54,9 +54,25 @@ T* allocator<T>::allocate(size_type n)
     return static_cast<T*>(::operator new(n * sizeof(T)));
 }
 
-
-
 // 释放内存
+template <class T>
+void allocator<T>::deallocate(T* ptr)
+{
+    if (ptr == nullptr)
+        return;
+    ::operator delete(ptr);
+}
+
+template <class T>
+void allocator<T>::deallocate(T* ptr, size_type /*size*/)
+{
+    if (ptr == nullptr)
+        return;
+    ::operator delete(ptr);
+}
+
+
+// 销毁元素
 template <class T>
 void allocator<T>::destroy(T* ptr)
 {
