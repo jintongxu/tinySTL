@@ -114,9 +114,10 @@ public:
         range_init(ilist.begin(), ilist.end());
     }
 
-    vector& operator=(const vector& rhs);
-    vector& operator=(vector&& rhs) noexcept;
+    vector& operator=(const vector& rhs);           // 拷贝赋值运算符
+    vector& operator=(vector&& rhs) noexcept;       // 移动赋值运算符
 
+    // 支持 initializer_list 类型赋值-----> mystl::vector<int> myVector = {1, 2, 3, 4};
     vector& operator=(std::initializer_list<value_type> ilist)
     {
         vector tmp(ilist.begin(), ilist.end());
@@ -124,11 +125,11 @@ public:
         return *this;
     }
 
-    // ~vector()
-    // {
-    //     destroy_and_recover(begin_, end_, cap_ - begin_);
-    //     begin_ = end_ = cap_ = nullptr;
-    // }
+     ~vector()
+     {
+         destroy_and_recover(begin_, end_, cap_ - begin_);
+         begin_ = end_ = cap_ = nullptr;
+     }
 
 
 public:
