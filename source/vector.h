@@ -146,6 +146,21 @@ public:
 
     reverse_iterator      rbegin()          noexcept
     { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin()      const noexcept
+    { return const_reverse_iterator(end()); }
+    reverse_iterator     rend()            noexcept
+    { return reverse_iterator(begin()); }
+    const_reverse_iterator rend()       const noexcept
+    { return const_reverse_iterator(begin()); }
+    
+    const_iterator      cbegin()            const noexcept
+    { return begin(); }
+    const_iterator      cend()              const noexcept
+    { return end(); }
+    const_reverse_iterator  crbegin()       const noexcept
+    { return rbegin(); }
+    const_reverse_iterator  crend()         const noexcept
+    { return rend(); }
 
     // 容器相关操作
     bool    empty()     const noexcept

@@ -22,9 +22,11 @@ void myselfVector() {
 
     mystl::vector<int> myVector = {1, 2, 3, 4};
 
-    for (int i = 0; i < 4; i ++) {
-        std::cout << myVector[i] << std::endl;
-    }
+    // for (int i = 0; i < 4; i ++) {
+    //     std::cout << myVector[i] << std::endl;
+    // }
+    std::cout << *(myVector.rend() - 1)<< std::endl;
+
 
 
 }
