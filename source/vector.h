@@ -175,9 +175,50 @@ public:
 
 
 
-
     // 访问元素相关操作
     reference operator[](size_type n) { return *(begin_ + n); };
+
+    const_reference operator[](size_type n) const
+    {
+        // 如果是类似 const mystl::vector<int> v 定义的只能调用这个方法，不能修改vector的内容。
+        return *(begin_ + n);
+    }
+    reference at(size_type n)
+    {
+        // 普通定义的vector返回&，可以修改vector内容
+        return (*this)[n];
+    }
+    const_reference at(size_type n) const 
+    {
+        // 如果是类似 const mystl::vector<int> v 定义的只能调用这个方法，不能修改vector的内容。
+        return (*this)[n];
+    }
+
+    reference front()
+    {
+        // 普通定义的vector返回&，可以修改vector内容
+        return *begin_;
+    }
+    const_reference front() const
+    {
+        // 如果是类似 const mystl::vector<int> v 定义的只能调用这个方法，不能修改vector的内容。
+        return *begin_;
+    }
+    reference back()
+    {
+        // 普通定义的vector返回&，可以修改vector内容
+        return *(end_ - 1);
+    }
+    const_reference back() const
+    {
+        // 如果是类似 const mystl::vector<int> v 定义的只能调用这个方法，不能修改vector的内容。
+        return *(end_ - 1);
+    }
+
+    pointer     data()              noexcept  { return begin_; }
+    const_pointer data()        const noexcept { return begin_; }
+
+    /* 修改容器相关操作 */
 
     // swap
     void swap(vector& rhs) noexcept;

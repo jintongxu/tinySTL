@@ -22,10 +22,16 @@ void myselfVector() {
 
     mystl::vector<int> myVector = {1, 2, 3, 4};
 
-    // for (int i = 0; i < 4; i ++) {
-    //     std::cout << myVector[i] << std::endl;
-    // }
-    std::cout << *(myVector.rend() - 1)<< std::endl;
+    std::cout << "at方法测试:      " << myVector.at(2) << std::endl;
+    myVector.at(2) = 10;
+    std::cout << "at方法测试后:    " << myVector[2] << std::endl;
+    
+    std::cout << "front方法测试:   " << myVector.front() << std::endl;
+    myVector.front() = 100; 
+
+    std::cout << "front方法测试后:   " << myVector[0] << std::endl;
+
+    std::cout << "back方法测试:    " << myVector.back() << std::endl;
 
 
 
