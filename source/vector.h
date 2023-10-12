@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "util.h"
 #include "uninitialized.h"
+#include "exceptdef.h"
 
 
 namespace mystl
@@ -152,7 +153,7 @@ public:
     { return reverse_iterator(begin()); }
     const_reverse_iterator rend()       const noexcept
     { return const_reverse_iterator(begin()); }
-    
+
     const_iterator      cbegin()            const noexcept
     { return begin(); }
     const_iterator      cend()              const noexcept
@@ -188,7 +189,7 @@ public:
         // 普通定义的vector返回&，可以修改vector内容
         return (*this)[n];
     }
-    const_reference at(size_type n) const 
+    const_reference at(size_type n) const
     {
         // 如果是类似 const mystl::vector<int> v 定义的只能调用这个方法，不能修改vector的内容。
         return (*this)[n];
@@ -220,6 +221,23 @@ public:
 
     /* 修改容器相关操作 */
 
+    // assign
+    void assign(size_type n, const value_type& value)
+    { fill_assign(n, value); }
+
+    template <class Iter, typename std::enable_if<
+            mystl::is_input_iterator<Iter>::value, int>::type = 0>
+    void assign(Iter first, Iter last)
+    {
+        MYSTL_DEBUG(!(last < first));
+        copy_assign(first, last, iterator_category(first));
+    }
+
+    // erase / clear
+//    iterator erase(const_iterator pos);
+    iterator erase(const_iterator first, const_iterator last);
+    void clear() { erase(begin(), end()); }
+
     // swap
     void swap(vector& rhs) noexcept;
 
@@ -238,6 +256,17 @@ void destroy_and_recover(iterator first, iterator last, size_type n);   // 销�
 void init_space(size_type size);
 
 void fill_init(size_type n, const value_type& value);
+
+
+// assign
+void fill_assign(size_type n, const value_type& value);
+
+template <class IIter>
+void copy_assign(IIter first, IIter last, input_iterator_tag);
+
+//template <class FIter>
+//void copy_assign(FIter fist, FIter last, forward_iterator_tag);
+
 };
 
 /*****************************************************************************************/
@@ -293,6 +322,21 @@ vector<T>& vector<T>::operator=(vector<T>&& rhs) noexcept
     rhs.cap_ = nullptr;
     return *this;
 }
+
+
+// 删除 [first, last)上的元素
+template <class T>
+typename vector<T>::iterator
+vector<T>::erase(const_iterator first, const_iterator last)
+{
+    MYSTL_DEBUG(first >= begin() && last <= end() && !(last < first));
+    const auto n = first - begin();
+    iterator r = begin_ + (first - begin());
+    data_allocator::destroy(mystl::move(r + (last - first), end_, r), end_);
+    end_ = end_ - (last - first);   // 更新 end_ 的位置
+    return begin_ + n;
+}
+
 
 // 与另一个 vector 交换
 template <class T>
@@ -388,6 +432,42 @@ template <class T>
 void swap(vector<T>& lhs, vector<T>& rhs)
 {
     lhs.swap(rhs);
+}
+
+// fill_assign 函数
+template <class T>
+void vector<T>::
+fill_assign(size_type n, const value_type& value)
+{
+    if (n > capacity()) {
+        vector tmp(n, value);  // 创建一个临时变量
+        swap(tmp);     // 然后交换3个指针
+    } else if (n > size()) {
+        mystl::fill(begin(), end(), value);
+        end_ = mystl::uninitialized_fill_n(end_, n - size(), value);  // 从 第一个参数开始，填充第二个参数个元素，返回填充结束的位置
+    }
+}
+
+// copy_assign 函数
+template <class T>
+template <class IIter>
+void vector<T>::
+copy_assign(IIter first, IIter last, input_iterator_tag)
+{
+    auto cur = begin_;
+    for (; first != last && cur != end_; ++first, ++cur)
+    {
+        *cur = *first;
+    }
+    if (first == last)
+    {
+        // 如果没到 end_ 就赋值结束了，就删除 cur 到 end_的元素
+        erase(cur, end_);
+    } else {
+        // 如果扫到了end_，还有其他元素没赋值呢
+//        insert(end_, first, last);
+    }
+
 }
 
 

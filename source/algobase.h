@@ -50,6 +50,36 @@ OutputIter fill_n(OutputIter first, Size n, const T& value)
 }
 
 
+/*****************************************************************************************/
+// fill
+// 为 [first, last)区间内的所有元素填充新值
+/*****************************************************************************************/
+template <class ForwardIter, class T>
+void fill_cat(ForwardIter first, ForwardIter last, const T& value,
+              mystl::forward_iterator_tag)
+{
+    for (; first != last; ++first)
+    {
+        *first = value;
+    }
+}
+
+template <class RandomIter, class T>
+void fill_cat(RandomIter first, RandomIter last, const T& value,
+              mystl::random_access_iterator_tag)
+{
+    // 如果是迭代器是 random_access_iterator_tag，那么可以直接推断出要填充多少个元素
+    fill_n(first, last - first, value);
+}
+
+template <class ForwardIter, class T>
+void fill(ForwardIter first, ForwardIter last, const T& value)
+{
+    fill_cat(first, last, value, iterator_category(first));
+}
+
+
+
 
 /*****************************************************************************************/
 // copy
@@ -97,6 +127,66 @@ OutputIter copy(InputIter first, InputIter last, OutputIter result)
 {
   return unchecked_copy(first, last, result);
 }
+
+/*****************************************************************************************/
+// move
+// 把 [first, last)区间内的元素移动到 [result, result + (last - first))内
+/*****************************************************************************************/
+// input_iterator_tag 版本
+template <class InputIter, class OutputIter>
+OutputIter
+unchecked_move_cat(InputIter first, InputIter last, OutputIter result,
+                   mystl::input_iterator_tag)
+{
+    for (; first != last; ++first, ++result)
+    {
+        *result = mystl::move(*first);
+    }
+    return result;
+}
+
+// random_access_iterator_tag 版本
+template <class RandomIter, class OutputIter>
+OutputIter
+unchecked_move_cat(RandomIter first, RandomIter last, OutputIter result,
+                   mystl::random_access_iterator_tag)
+{
+    for (auto n = last - first; n > 0; --n, ++first, ++result)
+    {
+        *result = mystl::move(*first);
+    }
+    return result;
+}
+
+template <class InputIter, class OutputIter>
+OutputIter
+unchecked_move(InputIter first, InputIter last, OutputIter result)
+{
+    return unchecked_move_cat(first, last, result, iterator_category(first));
+}
+
+// 为 trivially_copy_assignable 类型提供特化版本
+template <class Tp, class Up>
+typename std::enable_if<
+        std::is_same<typename std::remove_const<Tp>::type, Up>::value &&
+        std::is_trivially_move_assignable<Up>::value,
+        Up*>::type
+unchecked_move(Tp* first, Tp* last, Up* result)
+{
+    const size_t n = static_cast<size_t>(last - first);
+    if (n != 0)
+        std::memmove(result, first, n * sizeof(Up));
+    return result + n;
+}
+
+
+
+template <class InputIter, class OutputIter>
+OutputIter move(InputIter first, InputIter last, OutputIter result)
+{
+    return unchecked_move(first, last, result);
+}
+
 
 
 }

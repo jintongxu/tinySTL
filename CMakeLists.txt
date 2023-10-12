@@ -14,4 +14,5 @@ include_directories(${PROJECT_SOURCE_DIR}/source)
 file(GLOB SRC ${CMAKE_CURRENT_SOURCE_DIR}/test/vector_test.cpp)
 
 # 生成一个可执行文件 app.exe 或 app.out
-add_executable(main ${SRC})
+add_executable(main ${SRC}
+        source/exceptdef.h)
