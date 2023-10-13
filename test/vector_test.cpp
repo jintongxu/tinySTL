@@ -23,17 +23,17 @@ void sysVector() {
 // 自己的 vector 测试
 void myselfVector() {
 
-    // emplace(const_iterator pos, Args&& ...args)
+    // emplace_back(Args &&...args)
     /*
-     * 在指定位置插入元素，其他元素顺移。
+     * 在末尾插入元素，push_back是创建一个临时变量然后再复制，emplace_back是直接在末尾创建元素
      * 原vector 1,2
-     * 插入后 3 1 2
+     * 插入后 1 2 3
      */
     mystl::vector<int> myVector_emplace = {1, 2};
 
     int* pos = myVector_emplace.begin();
-    myVector_emplace.emplace(pos, 3);
-    for (int i = 0; i < 3; i ++) std::cout << myVector_emplace[i] << " \n"[i == 6];  // 3 1 2
+    myVector_emplace.emplace_back(3);
+    for (int i = 0; i < 3; i ++) std::cout << myVector_emplace[i] << " \n"[i == 6];  // 1 2 3
 
 }
 

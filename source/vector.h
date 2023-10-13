@@ -241,6 +241,9 @@ public:
     template <class... Args>
     iterator emplace(const_iterator  pos, Args&& ...args);
 
+    template <class... Args>
+    void emplace_back(Args&& ...args);
+
 
     // insert
     iterator insert(const_iterator pos, const value_type& value);
@@ -372,6 +375,21 @@ vector<T>::emplace(const_iterator pos, Args&& ...args)
         reallocate_emplace(xpos, mystl::forward<Args>(args)...);
     }
     return begin() + n;
+}
+
+// 在尾部就地构造元素，避免额外的复制或制动开销
+template <class T>
+template <class ...Args>
+void vector<T>::emplace_back(Args &&...args)
+{
+    if (end_ < cap_) {
+        // 直接在 end_ 创建元素
+        data_allocator::construct(mystl::address_of(*end_), mystl::forward<Args>(args)...);
+        ++end_;
+    } else {
+        // 重新分配空间，并在 end_ 创建元素
+        reallocate_emplace(end_, mystl::forward<Args>(args)...);
+    }
 }
 
 // 在 pos 处插入元素
@@ -611,14 +629,18 @@ template <class ...Args>
 void vector<T>::
 reallocate_emplace(iterator pos, Args&& ...args)
 {
-    const auto new_size = get_new_cap(1);
-    auto new_begin = data_allocator::allocate(new_size);
+    const auto new_size = get_new_cap(1);   // 新的 cap
+    auto new_begin = data_allocator::allocate(new_size);    // 根据新的 cap 分配空间并返回起始气质
     auto new_end = new_begin;
     try
     {
+        // 将 [begin_, pos) 的值从new_begin开始赋值，返回末尾元素的后一个地址
         new_end = mystl::uninitialized_move(begin_, pos, new_begin);
-        data_allocator::construct(mystl::address_of(*new_end), mystl::forward<Args>(args)...);
+
+        data_allocator::construct(mystl::address_of(*new_end), mystl::forward<Args>(args)...); // 在末尾构造元素
         ++new_end;
+
+        // 将 [pos, end_) 的元素从 new_end 开始赋值，并返回最后一个元素后面一个位置的地址。
         new_end = mystl::uninitialized_move(pos, end_, new_end);
     }
     catch (...)
@@ -626,7 +648,10 @@ reallocate_emplace(iterator pos, Args&& ...args)
         data_allocator::deallocate(new_begin, new_size);
         throw;
     }
+    // 销毁原来数组的元素，并且释放之前的内存
     destroy_and_recover(begin_, end_, cap_ - begin_);
+
+    // 将指针指向新构造的区域
     begin_ = new_begin;
     end_ = new_end;
     cap_ = new_begin + new_size;
