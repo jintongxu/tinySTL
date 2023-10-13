@@ -23,39 +23,17 @@ void sysVector() {
 // 自己的 vector 测试
 void myselfVector() {
 
-    // 测试 v.assign(n, value)
-    mystl::vector<int> myVector_assign1;
+    // emplace(const_iterator pos, Args&& ...args)
+    /*
+     * 在指定位置插入元素，其他元素顺移。
+     * 原vector 1,2
+     * 插入后 3 1 2
+     */
+    mystl::vector<int> myVector_emplace = {1, 2};
 
-    int value = 11;
-    myVector_assign1.assign(5, value);
-
-    for (int i = 0; i < 5; i ++) {
-        std::cout << myVector_assign1[i] << std::endl;
-    }
-
-
-    /* 测试 assign(std::initializer_list<value_type> il) */
-
-    // myVector_target2.assign({1, 2, 3, 4, 5, 6, 7});
-    mystl::vector<int> myVector_target2;
-
-    std::cout << "assign前:" << std::endl;
-    for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";
-
-    std::cout << "\n";
-
-    std::cout << "assign后:" << std::endl;
-    myVector_target2.assign({1, 2, 3, 4, 5, 6, 7});
-    for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";    // 1 2 3 4 5 6 7
-    
-    std::cout << "\n";
-
-
-
-
-
-
-
+    int* pos = myVector_emplace.begin();
+    myVector_emplace.emplace(pos, 3);
+    for (int i = 0; i < 3; i ++) std::cout << myVector_emplace[i] << " \n"[i == 6];  // 3 1 2
 
 }
 

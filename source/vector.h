@@ -236,6 +236,12 @@ public:
     void assign(std::initializer_list<value_type> il)
     { copy_assign(il.begin(), il.end(), mystl::forward_iterator_tag{}); }
 
+    // emplace / emplace_back
+
+    template <class... Args>
+    iterator emplace(const_iterator  pos, Args&& ...args);
+
+
     // insert
     iterator insert(const_iterator pos, const value_type& value);
 
@@ -277,6 +283,8 @@ template <class FIter>
 void copy_assign(FIter fist, FIter last, forward_iterator_tag);
 
 /* reallocate */
+template <class... Args>
+void reallocate_emplace(iterator pos, Args&& ...args);
 void reallocate_insert(iterator pos, const value_type& value);
 
 };
@@ -333,6 +341,37 @@ vector<T>& vector<T>::operator=(vector<T>&& rhs) noexcept
     rhs.end_ = nullptr;
     rhs.cap_ = nullptr;
     return *this;
+}
+
+
+// 在 pos 位置就地构造元素，避免额外的复制或移动开销
+template <class T>
+template <class ...Args>
+typename vector<T>::iterator
+vector<T>::emplace(const_iterator pos, Args&& ...args)
+{
+    MYSTL_DEBUG(pos >= begin() && pos <= end());
+    iterator xpos = const_cast<iterator>(pos);
+    const size_type n = xpos - begin_;
+    if (end_ != cap_ && xpos == end_)
+    {
+        data_allocator::construct(mystl::address_of(*end_), mystl::forward<Args>(args)...);
+        ++end_;
+    }
+    else if (end_ != cap_)
+    {
+        auto new_end = end_;
+        data_allocator::construct(mystl::address_of(*end_), *(end_ - 1));
+        ++new_end;
+        mystl::copy_backward(xpos, end_ - 1, end_);
+        *xpos = value_type(mystl::forward<Args>(args)...);
+        end_ = new_end;
+    }
+    else
+    {
+        reallocate_emplace(xpos, mystl::forward<Args>(args)...);
+    }
+    return begin() + n;
 }
 
 // 在 pos 处插入元素
@@ -566,6 +605,32 @@ copy_assign(FIter first, FIter last, forward_iterator_tag)
     }
 }
 
+// 重新分配空间并在 pos 处就地构造元素
+template <class T>
+template <class ...Args>
+void vector<T>::
+reallocate_emplace(iterator pos, Args&& ...args)
+{
+    const auto new_size = get_new_cap(1);
+    auto new_begin = data_allocator::allocate(new_size);
+    auto new_end = new_begin;
+    try
+    {
+        new_end = mystl::uninitialized_move(begin_, pos, new_begin);
+        data_allocator::construct(mystl::address_of(*new_end), mystl::forward<Args>(args)...);
+        ++new_end;
+        new_end = mystl::uninitialized_move(pos, end_, new_end);
+    }
+    catch (...)
+    {
+        data_allocator::deallocate(new_begin, new_size);
+        throw;
+    }
+    destroy_and_recover(begin_, end_, cap_ - begin_);
+    begin_ = new_begin;
+    end_ = new_end;
+    cap_ = new_begin + new_size;
+}
 
 
 
