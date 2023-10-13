@@ -244,6 +244,11 @@ public:
     template <class... Args>
     void emplace_back(Args&& ...args);
 
+    // push_back / pop_back
+    void push_back(const value_type& value);
+    void push_back(value_type&& value)
+    { emplace_back(mystl::move(value)); }
+
 
     // insert
     iterator insert(const_iterator pos, const value_type& value);
@@ -389,6 +394,21 @@ void vector<T>::emplace_back(Args &&...args)
     } else {
         // 重新分配空间，并在 end_ 创建元素
         reallocate_emplace(end_, mystl::forward<Args>(args)...);
+    }
+}
+
+// 在尾部插入元素
+template <class T>
+void vector<T>::push_back(const value_type& value)
+{
+    if (end_ != cap_)
+    {
+        // 如果没超过 cap，就直接在 end_处构建元素，然后++end_;
+        data_allocator::construct(mystl::address_of(*end_), value);
+        ++end_;
+    } else {
+        // 如果超过了cap，就重新分配内存，然后在构建元素
+        reallocate_insert(end_, value);
     }
 }
 
