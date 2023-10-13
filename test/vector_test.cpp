@@ -34,25 +34,19 @@ void myselfVector() {
     }
 
 
-    // 测试 v.assign(Iter first, Iter last)
-    /*
-     *  assign前:
-        0 0 0 0 0 0 0 0
-        assign后:
-        1 2 3 4 5 6
-     */
-    // 可以看到如果赋值的元素个数，小于原来的元素个数，那么就删除后面多余的元素
-    mystl::vector<int> myVector_assign2 = {1, 2, 3, 4, 5, 6};
+    /* 测试 assign(std::initializer_list<value_type> il) */
+
+    // myVector_target2.assign({1, 2, 3, 4, 5, 6, 7});
     mystl::vector<int> myVector_target2;
 
     std::cout << "assign前:" << std::endl;
-    for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";   // 0 0 0 0 0 0 0 0
+    for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";
 
     std::cout << "\n";
 
     std::cout << "assign后:" << std::endl;
-    myVector_target2.assign(myVector_assign2.begin(), myVector_assign2.end());
-    for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";    // 1 2 3 4 5 6
+    myVector_target2.assign({1, 2, 3, 4, 5, 6, 7});
+    for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";    // 1 2 3 4 5 6 7
     
     std::cout << "\n";
 

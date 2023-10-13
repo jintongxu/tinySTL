@@ -233,6 +233,9 @@ public:
         copy_assign(first, last, iterator_category(first));
     }
 
+    void assign(std::initializer_list<value_type> il)
+    { copy_assign(il.begin(), il.end(), mystl::forward_iterator_tag{}); }
+
     // insert
     iterator insert(const_iterator pos, const value_type& value);
 
