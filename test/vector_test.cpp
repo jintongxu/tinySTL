@@ -24,17 +24,18 @@ void sysVector() {
 void myselfVector() {
 
     /*
-     *   void push_back(const value_type& value);
-     *   void push_back(value_type&& value)
+     *   pop_back()
      */
-    mystl::vector<int> myVector_emplace = {1, 2};   // 1，2
+    mystl::vector<int> myVector_emplace = {1, 2, 3, 4};
 
-    int* pos = myVector_emplace.begin();
+    myVector_emplace.pop_back();
 
-    int value = 10;
-    myVector_emplace.push_back(value);  // 1，2，10
-    myVector_emplace.push_back(3);  // 1，2，10，3
-    for (int i = 0; i < 4; i ++) std::cout << myVector_emplace[i] << " \n"[i == 6];  // 1 2 10 3
+    int* begin = myVector_emplace.begin();  // 迭代器，因为 vector 的迭代器是原生指针
+    int* end = myVector_emplace.end();
+
+    for (; begin != end; begin ++) std::cout << *begin << " ";  // 1 2 3
+
+    std::cout << "\n";
 
 }
 

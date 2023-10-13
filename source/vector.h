@@ -249,6 +249,8 @@ public:
     void push_back(value_type&& value)
     { emplace_back(mystl::move(value)); }
 
+    void pop_back();
+
 
     // insert
     iterator insert(const_iterator pos, const value_type& value);
@@ -410,6 +412,16 @@ void vector<T>::push_back(const value_type& value)
         // 如果超过了cap，就重新分配内存，然后在构建元素
         reallocate_insert(end_, value);
     }
+}
+
+// 弹出尾部元素
+template <class T>
+void vector<T>::pop_back()
+{
+    MYSTL_DEBUG(!empty());
+    // 直接销毁末尾元素，然后移动 end_
+    data_allocator::destroy(end_ - 1);
+    --end_;
 }
 
 // 在 pos 处插入元素
