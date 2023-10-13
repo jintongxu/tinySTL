@@ -32,6 +32,13 @@ public:
     static void deallocate(T* ptr);
     static void deallocate(T* ptr, size_type n);
 
+    static void construct(T* ptr);
+    static void construct(T* ptr, const T& value);
+    static void construct(T* ptr, T&& value);
+
+    template <class... Args>
+    static void construct(T* ptr, Args&& ...args);
+
 
     static void destroy(T* ptr);
     static void destroy(T* first, T* last);
@@ -69,6 +76,33 @@ void allocator<T>::deallocate(T* ptr, size_type /*size*/)
     if (ptr == nullptr)
         return;
     ::operator delete(ptr);
+}
+
+template <class T>
+void allocator<T>::construct(T* ptr)
+{
+    mystl::construct(ptr);
+}
+
+template <class T>
+void allocator<T>::construct(T* ptr, const T& value)
+{  
+    // 传入的 value 是个左值
+    mystl::construct(ptr, value);
+}
+
+template <class T>
+void allocator<T>::construct(T* ptr, T&& value)
+{
+    // ptr是位置，value是右值
+    mystl::construct(ptr, mystl::move(value));
+}
+
+template <class T>
+template <class ...Args>
+void allocator<T>::construct(T* ptr, Args&& ...args)
+{
+    mystl::construct(ptr, mystl::forward<Args>(args)...);
 }
 
 

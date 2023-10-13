@@ -55,6 +55,10 @@
         "string": "cpp",
         "string_view": "cpp",
         "fstream": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "functional": "cpp",
+        "numeric": "cpp",
+        "random": "cpp",
+        "ranges": "cpp"
     }
 }

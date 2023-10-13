@@ -9,6 +9,23 @@
 namespace mystl
 {
 
+/*****************************************************************************************/
+// max
+// 取二者中的较大值，语义相等时保证返回第一个参数
+/*****************************************************************************************/
+template <class T>
+const T& max(const T& lhs, const T& rhs)
+{
+  return lhs < rhs ? rhs : lhs;
+}
+
+// 重载版本使用函数对象 comp 代替比较操作
+template <class T, class Compare>
+const T& max(const T& lhs, const T& rhs, Compare comp)
+{
+  return comp(lhs, rhs) ? rhs : lhs;
+}
+
 
 /*****************************************************************************************/
 // fill_n
@@ -127,6 +144,42 @@ OutputIter copy(InputIter first, InputIter last, OutputIter result)
 {
   return unchecked_copy(first, last, result);
 }
+
+
+/*****************************************************************************************/
+// copy_backward
+// 将 [first, last)区间内的元素拷贝到 [result - (last - first), result)内
+/*****************************************************************************************/
+// unchecked_copy_backward_cat 的 bidirectional_iterator_tag 版本
+template <class BidirectionalIter1, class BidirectionalIter2>
+BidirectionalIter2
+unchecked_copy_backward_cat(BidirectionalIter1 first, BidirectionalIter2 last,
+                            BidirectionalIter2 result, mystl::bidirectional_iterator_tag)
+{
+  while (first != last)
+    *--result = *--last;
+  return result;
+}
+
+// unchecked_copy_backward_cat 的 random_access_iterator_tag 版本
+template <class RandomIter1, class BidirectionalIter2>
+BidirectionalIter2
+unchecked_copy_backward_cat(RandomIter1 first, RandomIter1 last,
+                        BidirectionalIter2 result, mystl::random_access_iterator_tag)
+{
+  for (auto n = last - first; n > 0; --n)
+    *--result = *--last;
+  return result;
+}
+
+template <class BidirectionalIter1, class BidirectionalIter2>
+BidirectionalIter2
+copy_backward(BidirectionalIter1 first, BidirectionalIter1 last, BidirectionalIter1 result)
+{
+  return unchecked_copy_backward_cat(first, last, result,
+                                      iterator_category(first));
+}
+
 
 /*****************************************************************************************/
 // move

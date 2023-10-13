@@ -5,6 +5,7 @@
 #include <type_traits>
 
 #include "algobase.h"
+#include "memory.h"
 #include "construct.h"
 #include "iterator.h"
 #include "type_traits.h"
@@ -104,7 +105,46 @@ ForwardIter uninitialized_fill_n(ForwardIter first, Size n, const T& value)
 }
 
 
+/*****************************************************************************************/
+// uninitialized_move
+// 把[first, last)上的内容移动到以 result 为起始处的空间，返回移动结束的位置
+/*****************************************************************************************/
+// 如果是普通元素类型
+template <class InputIter, class ForwardIter>
+ForwardIter
+unchecked_uninit_move(InputIter first, InputIter last, ForwardIter result, std::true_type)
+{
+  return mystl::move(first, last, result);
+}
 
+// 如果不是普通元素类型
+template <class InputIter, class ForwardIter>
+ForwardIter
+unchecked_uninit_move(InputIter first, InputIter last, ForwardIter result, std::false_type)
+{
+  ForwardIter cur = result;
+  try
+  {
+    for (; first != last; ++first, ++cur)
+    {
+      mystl::construct(&*cur, mystl::move(*first));
+    }
+  }
+  catch(const std::exception& e)
+  {
+    mystl::destroy(result, cur);
+  }
+  
+}
+
+template <class InputIter, class ForwardIter>
+ForwardIter uninitialized_move(InputIter first, InputIter last, ForwardIter result)
+{
+  return mystl::unchecked_uninit_move(first, last, result,
+                                    std::is_trivially_move_assignable<
+                                    typename iterator_traits<InputIter>::
+                                    value_type>{});
+}
 
 
 

@@ -43,7 +43,7 @@ void myselfVector() {
      */
     // 可以看到如果赋值的元素个数，小于原来的元素个数，那么就删除后面多余的元素
     mystl::vector<int> myVector_assign2 = {1, 2, 3, 4, 5, 6};
-    mystl::vector<int> myVector_target2(8);
+    mystl::vector<int> myVector_target2;
 
     std::cout << "assign前:" << std::endl;
     for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";   // 0 0 0 0 0 0 0 0
@@ -53,7 +53,8 @@ void myselfVector() {
     std::cout << "assign后:" << std::endl;
     myVector_target2.assign(myVector_assign2.begin(), myVector_assign2.end());
     for (int* i = myVector_target2.begin(); i < myVector_target2.end(); i ++ ) std::cout << *i << " ";    // 1 2 3 4 5 6
-
+    
+    std::cout << "\n";
 
 
 

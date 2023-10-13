@@ -198,6 +198,41 @@ distance(InputIterator first, InputIterator last)
 }
 
 
+
+// 以下函数用于让迭代器前进 n 个距离
+
+// advance 的 input_iterator_tag 的版本
+template <class InputIterator, class Distance>
+void advance_dispatch(InputIterator& i, Distance n, input_iterator_tag)
+{
+    while(n--)
+        ++i;
+}
+
+// advance 的 bidirectional_iterator_tag 的版本
+template <class BidirectionalIterator, class Distance>
+void advance_dispatch(BidirectionalIterator& i, Distance n, bidirectional_iterator_tag)
+{
+    if (n >= 0)
+        while (n--) ++i;
+    else
+        while (n++) --i;
+}
+
+// advance 的 random_access_iterator_tag 的版本
+template <class RandomIter, class Distance>
+void advance_dispatch(RandomIter& i, Distance n, random_access_iterator_tag)
+{
+    i += n;
+}
+
+template <class InputIterator, class Distance>
+void advance(InputIterator& i, Distance n)
+{
+    advance_dispatch(i, n, iterator_category(i));
+}
+
+
 /*****************************************************************************************/
 
 // 模板类 : reverse_iterator

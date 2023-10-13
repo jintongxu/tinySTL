@@ -233,8 +233,11 @@ public:
         copy_assign(first, last, iterator_category(first));
     }
 
+    // insert
+    iterator insert(const_iterator pos, const value_type& value);
+
     // erase / clear
-//    iterator erase(const_iterator pos);
+    iterator erase(const_iterator pos);
     iterator erase(const_iterator first, const_iterator last);
     void clear() { erase(begin(), end()); }
 
@@ -257,6 +260,9 @@ void init_space(size_type size);
 
 void fill_init(size_type n, const value_type& value);
 
+// calculate the growth size
+size_type get_new_cap(size_type add_size);
+
 
 // assign
 void fill_assign(size_type n, const value_type& value);
@@ -264,8 +270,11 @@ void fill_assign(size_type n, const value_type& value);
 template <class IIter>
 void copy_assign(IIter first, IIter last, input_iterator_tag);
 
-//template <class FIter>
-//void copy_assign(FIter fist, FIter last, forward_iterator_tag);
+template <class FIter>
+void copy_assign(FIter fist, FIter last, forward_iterator_tag);
+
+/* reallocate */
+void reallocate_insert(iterator pos, const value_type& value);
 
 };
 
@@ -323,6 +332,45 @@ vector<T>& vector<T>::operator=(vector<T>&& rhs) noexcept
     return *this;
 }
 
+// 在 pos 处插入元素
+template <class T>
+typename vector<T>::iterator
+vector<T>::insert(const_iterator pos, const value_type& value)
+{
+    MYSTL_DEBUG(pos >= begin() && pos <= end());
+    iterator xpos = const_cast<iterator>(pos);
+    const size_type n = pos - begin_;
+    if (end_ != cap_ && xpos == end_)
+    {
+        // 如果插入位置正好是 end_，直接在end_地址处新建元素
+        data_allocator::construct(mystl::address_of(*end_), value);
+        ++end_;
+    } else if (end_ != cap_) {
+        auto new_end = end_;
+        data_allocator::construct(mystl::address_of(*end_), *(end_ - 1));
+        ++new_end;
+        auto value_copy = value;    // 避免元素因以下复制操作而改变
+        mystl::copy_backward(xpos, end_ - 1, end_);
+        *xpos = mystl::move(value_copy);
+        end_ = new_end;
+    } else {
+        reallocate_insert(xpos, value);
+    }
+    return begin_ + n;
+}
+
+
+// 删除 pos 位置上的元素
+template <class T>
+typename vector<T>::iterator
+vector<T>::erase(const_iterator pos)
+{
+    MYSTL_DEBUG(pos >= begin() && pos <= end());
+    iterator xpos = begin_ + (pos - begin());
+    mystl::move(xpos + 1, end_, xpos);
+    --end_;
+    return xpos;
+}
 
 // 删除 [first, last)上的元素
 template <class T>
@@ -417,6 +465,27 @@ range_init(Iter first, Iter last)
     mystl::uninitialized_copy(first, last, begin_);
 }
 
+// get_new_cap 函数
+// 计算容器拓展时需要的新容量
+template <class T>
+typename vector<T>::size_type 
+vector<T>::
+get_new_cap(size_type add_size)
+{
+  const auto old_size = capacity();
+  THROW_LENGTH_ERROR_IF(old_size > max_size() - add_size,
+                        "vector<T>'s size too big");
+  if (old_size > max_size() - old_size / 2)
+  {
+    return old_size + add_size > max_size() - 16
+      ? old_size + add_size : old_size + add_size + 16;
+  }
+  const size_type new_size = old_size == 0
+    ? mystl::max(add_size, static_cast<size_type>(16))
+    : mystl::max(old_size + old_size / 2, old_size + add_size);
+  return new_size;
+}
+
 // destroy_and_recover 函数
 // 销毁元素并释放内存
 template <class T>
@@ -465,9 +534,63 @@ copy_assign(IIter first, IIter last, input_iterator_tag)
         erase(cur, end_);
     } else {
         // 如果扫到了end_，还有其他元素没赋值呢
-//        insert(end_, first, last);
+       insert(end_, first, last);
     }
 
+}
+
+// 用 [first, last) 为容器赋值
+template <class T>
+template <class FIter>
+void vector<T>::
+copy_assign(FIter first, FIter last, forward_iterator_tag)
+{
+    const size_type len = mystl::distance(first, last); // 计算两个迭代器之间的距离
+    if (len > capacity())
+    {
+        vector tmp(first, last);
+        swap(tmp);
+    } else if (size() >= len) {
+        auto new_end = mystl::copy(first, last, begin_);
+        data_allocator::destroy(new_end, end_);
+        end_ = new_end;
+    } else {
+        auto mid = first;
+        mystl::advance(mid, size());
+        mystl::copy(first, mid, begin_);
+        auto new_end = mystl::unchecked_copy(mid, last, end_);
+        end_ = new_end;
+    }
+}
+
+
+
+
+// 重新分配空间并在 pos 处插入元素
+template <class T>
+void vector<T>::reallocate_insert(iterator pos, const value_type& value)
+{
+    const auto new_size = get_new_cap(1);
+    auto new_begin = data_allocator::allocate(new_size);
+    auto new_end = new_begin;
+    const value_type& value_copy = value;
+    try
+    {
+        new_end = mystl::uninitialized_move(begin_, pos, new_begin);
+        data_allocator::construct(mystl::address_of(*new_end), value_copy);
+        ++new_end;
+        new_end = mystl::uninitialized_move(pos, end_, new_end);
+    }
+    catch(...)
+    {
+        data_allocator::deallocate(new_begin, new_size);
+        throw;
+    }
+    destroy_and_recover(begin_, end_, cap_ - begin_);
+    begin_ = new_begin;
+    end_ = new_end;
+    cap_ = new_begin + new_size;
+    
 }
 
 
