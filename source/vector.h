@@ -276,6 +276,11 @@ public:
     iterator erase(const_iterator first, const_iterator last);
     void clear() { erase(begin(), end()); }
 
+    // resize / reverse
+    void resize(size_type new_size) { return resize(new_size, value_type()); } // value_type()是使用默认构造的value_type对象填充新元素，如果是int则默认为0
+    void resize(size_type new_size, const value_type& value);
+
+
     // swap
     void swap(vector& rhs) noexcept;
 
@@ -496,6 +501,20 @@ vector<T>::erase(const_iterator first, const_iterator last)
     data_allocator::destroy(mystl::move(r + (last - first), end_, r), end_);
     end_ = end_ - (last - first);   // 更新 end_ 的位置
     return begin_ + n;
+}
+
+// 重置容器大小
+template <class T>
+void vector<T>::resize(size_type new_size, const value_type& value)
+{
+    if (new_size < size())
+    {
+        // 如果重置的大小比原来的小，直接将后面超的删除就行了
+        erase(begin() + new_size, end());
+    } else {
+        // 如果原来的大小比重置的小，就要在end_开始添加元素。
+        insert(end(), new_size - size(), value);
+    }
 }
 
 

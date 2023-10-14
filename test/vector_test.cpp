@@ -28,15 +28,16 @@ void myselfVector() {
      */
     mystl::vector<int> myVector = {1, 2, 3, 4, 5};
 
-    mystl::vector<int> stdVector;
+    std::cout << "原来size大小\n" << myVector.size() << std::endl;  // 5
 
-    // 使用 insert 函数在 myVector 的第三个位置插入 stdVector 的元素
-    myVector.insert(myVector.begin(), stdVector.begin(), stdVector.end());
+    myVector.resize(10);
 
-    // 打印 myVector
-    for (const auto& val : myVector) {
-        std::cout << val << " ";    // 1 2 3 4 5
+    std::cout << "resize之后大小\n" << myVector.size() << "\n";     // 10
+    std::cout << "resize之后元素："; // resize之后元素：1 2 3 4 5 0 0 0 0 0
+    for (const int& value : myVector) {
+        std::cout << value << " ";
     }
+
 
 }
 
