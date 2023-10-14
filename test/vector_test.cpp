@@ -24,18 +24,19 @@ void sysVector() {
 void myselfVector() {
 
     /*
-     *   pop_back()
+     *   insert(const_iterator pos, Iter first, Iter last) 测试
      */
-    mystl::vector<int> myVector_emplace = {1, 2, 3, 4};
+    mystl::vector<int> myVector = {1, 2, 3, 4, 5};
 
-    myVector_emplace.pop_back();
+    mystl::vector<int> stdVector;
 
-    int* begin = myVector_emplace.begin();  // 迭代器，因为 vector 的迭代器是原生指针
-    int* end = myVector_emplace.end();
+    // 使用 insert 函数在 myVector 的第三个位置插入 stdVector 的元素
+    myVector.insert(myVector.begin(), stdVector.begin(), stdVector.end());
 
-    for (; begin != end; begin ++) std::cout << *begin << " ";  // 1 2 3
-
-    std::cout << "\n";
+    // 打印 myVector
+    for (const auto& val : myVector) {
+        std::cout << val << " ";    // 1 2 3 4 5
+    }
 
 }
 

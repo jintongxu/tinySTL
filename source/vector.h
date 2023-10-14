@@ -254,6 +254,22 @@ public:
 
     // insert
     iterator insert(const_iterator pos, const value_type& value);
+    iterator insert(const_iterator pos, value_type&& value)
+    { return emplace(pos, mystl::move(value)); }
+
+    iterator insert(const_iterator pos, size_type n, const value_type& value)
+    {
+        MYSTL_DEBUG(pos >= begin() && pos <= end());
+        return fill_insert(const_cast<iterator>(pos), n, value);
+    }
+
+    template <class Iter, typename std::enable_if<
+            mystl::is_input_iterator<Iter>::value, int>::type = 0>
+    void     insert(const_iterator pos, Iter first, Iter last)
+    {
+        MYSTL_DEBUG(pos >= begin() && pos <= end() && !(last < first));
+        copy_insert(const_cast<iterator>(pos), first, last);
+    }
 
     // erase / clear
     iterator erase(const_iterator pos);
@@ -296,6 +312,11 @@ void copy_assign(FIter fist, FIter last, forward_iterator_tag);
 template <class... Args>
 void reallocate_emplace(iterator pos, Args&& ...args);
 void reallocate_insert(iterator pos, const value_type& value);
+
+// insert
+iterator fill_insert(iterator pos, size_type n, const value_type& value);
+template <class IIter>
+void copy_insert(iterator pos, IIter first, IIter last);
 
 };
 
@@ -716,6 +737,111 @@ void vector<T>::reallocate_insert(iterator pos, const value_type& value)
     end_ = new_end;
     cap_ = new_begin + new_size;
     
+}
+
+/* fill_insert 函数 */
+// 在指定位置插入 n 个相同的元素
+template <class T>
+typename vector<T>::iterator
+vector<T>::
+fill_insert(iterator pos, size_type n, const value_type& value)
+{
+    if (n == 0)
+        return pos;
+    const size_type xpos = pos - begin_;
+    const value_type value_copy = value;    // 避免被覆盖
+    if (static_cast<size_type>(cap_ - end_) >= n)
+    {
+        // 如果备用空间大于等于增加的空间
+        const size_type after_elems = end_ - pos;
+        auto old_end = end_;
+        if (after_elems > n)
+        {
+            // 如果 pos 到 end_ 的个数超过要增加的元素个数
+
+            // 将 pos 到 end_ 的元素向后移动n位，给新插入元素腾出位置
+            mystl::uninitialized_copy(end_ - n, end_, end_);
+
+            end_ += n; // 更新 end_ 位置
+            mystl::uninitialized_fill_n(pos, n, value_copy);    // 将元素插入中间腾出的位置
+        } else {
+            end_ = mystl::uninitialized_fill_n(end_, n - after_elems, value_copy);
+            end_ = mystl::uninitialized_move(pos, old_end, end_);
+            mystl::uninitialized_fill_n(pos, after_elems, value_copy);
+        }
+    } else {
+        // 如果备用空间不足
+        const auto new_size = get_new_cap(n);
+        auto new_begin = data_allocator::allocate(new_size);
+        auto new_end = new_begin;
+        try
+        {
+            new_end = mystl::uninitialized_move(begin_, pos, new_begin);
+            new_end = mystl::uninitialized_fill_n(new_end, n, value);
+            new_end = mystl::uninitialized_move(pos, end_, new_end);
+        }
+        catch (...)
+        {
+            destroy_and_recover(new_begin, new_end, new_size);
+            throw;
+        }
+        data_allocator::deallocate(begin_, cap_ - begin_);
+        begin_ = new_begin;
+        end_ = new_end;
+        cap_ = begin_ + new_size;
+    }
+    return begin_ + xpos;
+}
+
+// copy_insert 函数
+template <class T>
+template <class IIter>
+void vector<T>::
+copy_insert(iterator pos, IIter first, IIter last)
+{
+    if (first == last)
+        return;
+    const auto n = mystl::distance(first, last);
+    if ((cap_ - end_) >= n)
+    {
+        // 如果备用空间大小足够
+        const auto after_elems = end_ - pos;
+        auto old_end = end_;
+        if (after_elems > n)
+        {
+//            把 [first, last) 上的内容复制到以 result 为起始处的空间，返回复制结束的位置
+            end_ = mystl::uninitialized_copy(end_ - n, end_, end_);
+            mystl::move_backward(pos, old_end - n, old_end);
+            mystl::uninitialized_copy(first, last, pos);
+        } else {
+            auto mid = first;
+            mystl::advance(mid, after_elems);
+            end_ = mystl::uninitialized_copy(mid, last, end_);
+            end_ = mystl::uninitialized_move(pos, old_end, end_);
+            mystl::uninitialized_copy(first, mid, pos);
+        }
+    } else
+    {
+        // 备用空间不足
+        const auto new_size = get_new_cap(n);
+        auto new_begin = data_allocator::allocate(new_size);
+        auto new_end = new_begin;
+        try
+        {
+            new_end = mystl::uninitialized_move(begin_, pos, new_begin);
+            new_end = mystl::uninitialized_copy(first, last, new_end);
+            new_end = mystl::uninitialized_move(pos, end_, new_end);
+        }
+        catch (...)
+        {
+            destroy_and_recover(new_begin, new_end, new_size);
+            throw;
+        }
+        data_allocator::deallocate(begin_, cap_ - begin_);
+        begin_ = new_begin;
+        end_ = new_end;
+        cap_ = begin_ + new_size;
+    }
 }
 
 
