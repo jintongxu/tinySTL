@@ -49,13 +49,6 @@ T* allocator<T>::allocate() {
     return static_cast<T*>(::operator new(sizeof(T)));
 }
 
-template <class T>
-T* allocator<T>::allocate(size_type n)
-{
-    if (n == 0)
-        return nullptr;
-    return static_cast<T*>(::operator new(n * sizeof(T)));
-}
 
 // 分配内存，分配n个类型为 T 的内存，并强制转为 T*
 // 返回一个指向该内存的指针 T*

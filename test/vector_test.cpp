@@ -26,21 +26,45 @@ void myselfVector() {
     /*
      *   insert(const_iterator pos, Iter first, Iter last) 测试
      */
-    mystl::vector<int> myVector = {1, 2, 3, 4, 5};
 
-    std::cout << "原来元素为：";
-    for (const int& value : myVector) {
-        std::cout << value << " ";
-    }
+    /* 可以看到 resize 后并不会影响capacity的大小。通过shrink_to_fit调整后 cap 就和 size一样大了。
+     shrink_to_fit前：
+        size大小：100000
+        capacity大小：100000
+
+    resize后：
+        size大小：1
+        capacity大小：100000
+
+    shrink_to_fit后：
+        size大小：1
+        capacity大小：1
+     */
+    mystl::vector<int> myVector(100000);
+    for (int i = 0; i < 100000; i++) myVector[i] = i;
+
+    std::cout << "shrink_to_fit前：";
+    std::cout << "size大小：" << myVector.size() << "\n";
+    std::cout << "capacity大小：" << myVector.capacity() << "\n";
 
     std::cout << "\n";
 
-    myVector.reverse();
+    myVector.resize(1);
+    std::cout << "resize后：";
+    std::cout << "size大小：" << myVector.size() << "\n";
+    std::cout << "capacity大小：" << myVector.capacity() << "\n";
 
-    std::cout << "reverse之后：";
-    for (const int& value : myVector) {
-        std::cout << value << " ";
-    }
+    std::cout << "\n";
+
+    myVector.shrink_to_fit();
+    std::cout << "shrink_to_fit后：";
+    std::cout << "size大小：" << myVector.size() << "\n";
+    std::cout << "capacity大小：" << myVector.capacity();
+
+
+
+
+
 
 
 }

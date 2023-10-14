@@ -167,13 +167,22 @@ public:
     // 容器相关操作
     bool    empty()     const noexcept
     { return begin_ == end_; }
-    size_type size()    const noexcept
+    size_type size()    const noexcept  // size 是实际元素占用的空间
     { return static_cast<size_type>(end_ - begin_); }
     size_type max_size()  const noexcept
     { return static_cast<size_type>(-1) / sizeof(T); }
     size_type capacity() const noexcept
     { return static_cast<size_type>(cap_ - begin_); }
     void    reserve(size_type n);
+    // 减小容器的容量以适应其大小，并破坏超出该容量的所有元素。和 resize 配合
+    /*
+     * 就是因为 reserve 只能增长 cap_ 而不能减少 cap_。
+     * 但是当我们从一个数据量很大的空间 resize() 到小的数据量，它的 cap_是不会变的。
+     * 你想想，总共10个元素，但是cap_可能非常大，这是一种资源浪费，所以shrink_to_fit就是降低cap_的
+     *
+     * 根据 size() 调整 cap_ 的大小，这里最后设置的调整后 size()和cap_相等。
+     */
+    void    shrink_to_fit();
 
 
 
@@ -326,6 +335,9 @@ iterator fill_insert(iterator pos, size_type n, const value_type& value);
 template <class IIter>
 void copy_insert(iterator pos, IIter first, IIter last);
 
+// shrink_to_fit
+void      reinsert(size_type size);
+
 };
 
 /*****************************************************************************************/
@@ -404,6 +416,17 @@ void vector<T>::reserve(size_type n)
     }
 
 }
+
+// 放弃多余的容量
+template <class T>
+void vector<T>::shrink_to_fit()
+{
+    if (end_ < cap_)
+    {
+        reinsert(size());
+    }
+}
+
 
 // 在 pos 位置就地构造元素，避免额外的复制或移动开销
 template <class T>
@@ -886,6 +909,26 @@ copy_insert(iterator pos, IIter first, IIter last)
         end_ = new_end;
         cap_ = begin_ + new_size;
     }
+}
+
+// reinsert 函数
+template <class T>
+void vector<T>::reinsert(size_type size)
+{
+    auto new_begin = data_allocator::allocate(size);
+    try
+    {
+        mystl::uninitialized_move(begin_, end_, new_begin);
+    }
+    catch (...)
+    {
+        data_allocator::deallocate(new_begin, size);
+        throw;
+    }
+    data_allocator::deallocate(begin_, cap_ - begin_);
+    begin_ = new_begin;
+    end_ = begin_ + size;
+    cap_ = begin_ + size;
 }
 
 
