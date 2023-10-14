@@ -95,7 +95,15 @@ void fill(ForwardIter first, ForwardIter last, const T& value)
     fill_cat(first, last, value, iterator_category(first));
 }
 
-
+/*****************************************************************************************/
+// iter_swap
+// 将两个迭代器所指对象对调
+/*****************************************************************************************/
+template <class FIter1, class FIter2>
+void iter_swap(FIter1 lhs, FIter2 rhs)
+{
+    mystl::swap(*lhs, *rhs);
+}
 
 
 /*****************************************************************************************/

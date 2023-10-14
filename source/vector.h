@@ -23,6 +23,7 @@
 #include "util.h"
 #include "uninitialized.h"
 #include "exceptdef.h"
+#include "algo.h"
 
 
 namespace mystl
@@ -280,6 +281,7 @@ public:
     void resize(size_type new_size) { return resize(new_size, value_type()); } // value_type()是使用默认构造的value_type对象填充新元素，如果是int则默认为0
     void resize(size_type new_size, const value_type& value);
 
+    void reverse() { mystl::reverse(begin(), end()); }
 
     // swap
     void swap(vector& rhs) noexcept;

@@ -28,12 +28,16 @@ void myselfVector() {
      */
     mystl::vector<int> myVector = {1, 2, 3, 4, 5};
 
-    std::cout << "原来size大小\n" << myVector.size() << std::endl;  // 5
+    std::cout << "原来元素为：";
+    for (const int& value : myVector) {
+        std::cout << value << " ";
+    }
 
-    myVector.resize(10);
+    std::cout << "\n";
 
-    std::cout << "resize之后大小\n" << myVector.size() << "\n";     // 10
-    std::cout << "resize之后元素："; // resize之后元素：1 2 3 4 5 0 0 0 0 0
+    myVector.reverse();
+
+    std::cout << "reverse之后：";
     for (const int& value : myVector) {
         std::cout << value << " ";
     }
