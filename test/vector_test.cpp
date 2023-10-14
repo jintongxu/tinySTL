@@ -23,48 +23,26 @@ void sysVector() {
 // 自己的 vector 测试
 void myselfVector() {
 
+    // 重载比较操作符测试
+    mystl::vector<int> myVector1 = {1, 2, 3};
+    mystl::vector<int> myVector2 = {1, 2, 3};
+    mystl::vector<int> myVector3 = {4, 5, 6};
+
     /*
-     *   insert(const_iterator pos, Iter first, Iter last) 测试
+     *  myVector1和myVector2相等
+     *  myVector2和myVector3不相等
      */
+    if (myVector1 == myVector2) {
+        std::cout << "myVector1和myVector2相等" << std::endl;
+    } else {
+        std::cout << "myVector1和myVector2不相等" << std::endl;
+    }
 
-    /* 可以看到 resize 后并不会影响capacity的大小。通过shrink_to_fit调整后 cap 就和 size一样大了。
-     shrink_to_fit前：
-        size大小：100000
-        capacity大小：100000
-
-    resize后：
-        size大小：1
-        capacity大小：100000
-
-    shrink_to_fit后：
-        size大小：1
-        capacity大小：1
-     */
-    mystl::vector<int> myVector(100000);
-    for (int i = 0; i < 100000; i++) myVector[i] = i;
-
-    std::cout << "shrink_to_fit前：";
-    std::cout << "size大小：" << myVector.size() << "\n";
-    std::cout << "capacity大小：" << myVector.capacity() << "\n";
-
-    std::cout << "\n";
-
-    myVector.resize(1);
-    std::cout << "resize后：";
-    std::cout << "size大小：" << myVector.size() << "\n";
-    std::cout << "capacity大小：" << myVector.capacity() << "\n";
-
-    std::cout << "\n";
-
-    myVector.shrink_to_fit();
-    std::cout << "shrink_to_fit后：";
-    std::cout << "size大小：" << myVector.size() << "\n";
-    std::cout << "capacity大小：" << myVector.capacity();
-
-
-
-
-
+    if (myVector2 == myVector3) {
+        std::cout << "myVector2和myVector3相等" << std::endl;
+    } else {
+        std::cout << "myVector2和myVector3不相等" << std::endl;
+    }
 
 
 }

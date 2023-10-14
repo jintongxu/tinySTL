@@ -932,6 +932,47 @@ void vector<T>::reinsert(size_type size)
 }
 
 
+/*****************************************************************************************/
+// 重载比较操作符
+
+template <class T>
+bool operator==(const vector<T>& lhs, const vector<T>& rhs)
+{
+    return lhs.size() == rhs.size() &&
+           mystl::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+template <class T>
+bool operator<(const vector<T>& lhs, const vector<T>& rhs)
+{
+    return mystl::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <class T>
+bool operator!=(const vector<T>& lhs, const vector<T>& rhs)
+{
+    return !(lhs == rhs);
+}
+
+template <class T>
+bool operator>(const vector<T>& lhs, const vector<T>& rhs)
+{
+    return rhs < lhs;
+}
+
+template <class T>
+bool operator<=(const vector<T>& lhs, const vector<T>& rhs)
+{
+    return !(rhs < lhs);
+}
+
+template <class T>
+bool operator>=(const vector<T>& lhs, const vector<T>& rhs)
+{
+    return !(lhs < rhs);
+}
+
+
 };
 
 
