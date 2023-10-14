@@ -34,6 +34,7 @@ void reverse_dispatch(BidirectionalIter first, BidirectionalIter last,
 {
     while(true)
     {
+        // last 会先减一
         if (first == last || first == --last) {
             return;
         }

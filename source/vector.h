@@ -173,6 +173,7 @@ public:
     { return static_cast<size_type>(-1) / sizeof(T); }
     size_type capacity() const noexcept
     { return static_cast<size_type>(cap_ - begin_); }
+    void    reserve(size_type n);
 
 
 
@@ -381,6 +382,28 @@ vector<T>& vector<T>::operator=(vector<T>&& rhs) noexcept
     return *this;
 }
 
+// 预留空间大小，当原容量小于要求大小时，才会重新分配
+// 重新分配 cap_，如果 新分配的 n 大于原来的 cap_ 才会进行操作，否则什么都不进行。不会影响容器内元素
+template <class T>
+void vector<T>::reserve(size_type n)
+{
+    if (capacity() < n)
+    {
+        THROW_LENGTH_ERROR_IF(n > max_size(),
+                              "n can not larger than max_size() in vector<T>::reserve(n)");
+        const auto old_size = size();
+        auto tmp = data_allocator::allocate(n); // 创建 n 个 T 类型的空间，然后返回空间起始位置
+        mystl::uninitialized_move(begin_, end_, tmp);  // 将原来元素，复制到以tmp起始的空间中
+        data_allocator::deallocate(begin_, cap_ - begin_);  // 释放原空间的内存
+
+        // 切换指针
+        begin_ = tmp;
+        end_ = tmp + old_size;
+        cap_ = begin_ + n;
+
+    }
+
+}
 
 // 在 pos 位置就地构造元素，避免额外的复制或移动开销
 template <class T>
